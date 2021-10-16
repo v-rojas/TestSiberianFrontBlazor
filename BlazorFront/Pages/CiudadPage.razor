@@ -1,0 +1,62 @@
+﻿@page "/ciudadpage"
+
+@using BlazorFront.Data
+@inject CiudadService CiudadService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<h1>Ciudades</h1>
+
+<p>Lista de ciudades</p>
+
+<div class="row">
+    <div class="col-12 text-right">
+        <a href="ciudadform">Añadir</a>
+    </div>
+</div>
+
+@if (lista == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Fecha de Creación</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ciudad in lista)
+            {
+                <tr>
+                    <td>@ciudad.NombreCiudad</td>
+                    <td>@ciudad.FechaCreacion</td>
+                    <td>
+                        <a href="ciudadform/@ciudad.IDCiudad">Editar</a>
+                        <a href="eliminarciudad/@ciudad.IDCiudad">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CiudadModelo> lista;
+    CiudadModelo c = new CiudadModelo();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            c.Codigo = "3";
+            c.Token = await sessionStorage.GetItemAsync<string>("token_ciudad");
+            lista = await CiudadService.CrudCiudad(c);
+            StateHasChanged();
+        }
+    }
+}
+

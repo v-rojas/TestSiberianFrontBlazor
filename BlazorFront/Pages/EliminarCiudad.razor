@@ -1,0 +1,73 @@
+﻿@page "/eliminarciudad"
+@page "/eliminarciudad/{Id:int}"
+
+<h3>¿Estás seguro de eliminar este registro?</h3>
+
+<br />
+
+@using Data
+
+@inject CiudadService CiudadService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<EditForm Model="@c">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Nombre</label>
+            <div class="col-sm-9">
+                <InputText disabled class="form-control" @bind-Value="c.NombreCiudad"></InputText>
+                <ValidationMessage For="@(() => c.NombreCiudad)"></ValidationMessage>
+            </div>
+        </div>
+        <br />
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Regresar">Cancelar</button>
+                <button class="btn btn-primary" @onclick="EliminarRegistro">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    CiudadModelo c = new CiudadModelo();
+    List<CiudadModelo> ciudades = new List<CiudadModelo>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (Id != 0)
+            {
+                CiudadModelo ciudad = new CiudadModelo();
+                ciudad.Codigo = "4";
+                ciudad.IDCiudad = Id.ToString();
+                ciudad.Token = await sessionStorage.GetItemAsync<string>("token_ciudad");
+                ciudades = await CiudadService.CrudCiudad(ciudad);
+                c = ciudades.First();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task EliminarRegistro()
+    {
+        if (Id != 0)
+        {
+            c.Codigo = "5";
+            c.Token = await sessionStorage.GetItemAsync<string>("token_ciudad");
+            await CiudadService.CrudCiudad(c);
+        }
+        NavigationManager.NavigateTo("/ciudadpage");
+    }
+
+    private void Regresar()
+    {
+        NavigationManager.NavigateTo("/ciudadpage");
+    }
+}
+

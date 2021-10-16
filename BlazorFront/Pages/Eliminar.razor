@@ -1,0 +1,92 @@
+﻿@page "/eliminar"
+@page "/eliminar/{Id:int}"
+
+<h3>¿Estás seguro de eliminar este registro?</h3>
+
+<br />
+
+@using Data
+
+@inject CiudadService CiudadService
+@inject RestauranteService RestauranteService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<EditForm Model="@r">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Nombre</label>
+            <div class="col-sm-9">
+                <InputText disabled class="form-control" @bind-Value="r.NombreRestaurante"></InputText>
+                <ValidationMessage For="@(() => r.NombreRestaurante)"></ValidationMessage>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Ciudades</label>
+            <div class="col-sm-9">
+                <InputText disabled class="form-control" @bind-Value="r.NombreCiudad"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Aforo</label>
+            <div class="col-sm-9">
+                <InputText disabled class="form-control" @bind-Value="r.NumeroAforo"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Teléfono</label>
+            <div class="col-sm-9">
+                <InputText disabled class="form-control" @bind-Value="r.Telefono"></InputText>
+            </div>
+        </div>
+        <br />
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Regresar">Cancelar</button>
+                <button class="btn btn-primary" @onclick="EliminarRegistro">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    Restaurante r = new Restaurante();
+    List<Restaurante> rest = new List<Restaurante>();
+    List<CiudadModelo> ciudades = new List<CiudadModelo>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (Id != 0)
+            {
+                Restaurante res = new Restaurante();
+                res.Codigo = "2";
+                res.IDRestaurante = Id.ToString();
+                res.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+                rest = await RestauranteService.CrudRestaurante(res);
+                r = rest.First();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task EliminarRegistro()
+    {
+        if (Id != 0)
+        {
+            r.Codigo = "5";
+            r.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+            await RestauranteService.CrudRestaurante(r);
+        }
+        NavigationManager.NavigateTo("/restaurantepage");
+    }
+
+    private void Regresar()
+    {
+        NavigationManager.NavigateTo("/restaurantepage");
+    }
+}

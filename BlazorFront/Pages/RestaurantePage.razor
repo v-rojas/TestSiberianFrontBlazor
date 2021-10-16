@@ -1,0 +1,67 @@
+﻿@page "/restaurantepage"
+
+@using BlazorFront.Data
+@inject RestauranteService RestauranteService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<h1>Restaurantes</h1>
+
+<p>Lista de restaurantes</p>
+
+<div class="row">
+    <div class="col-12 text-right">
+        <a href="restauranteform">Añadir</a>
+    </div>
+</div>
+
+@if (lista == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Ciudad</th>
+                <th>Aforo</th>
+                <th>Teléfono</th>
+                <th>Fecha de Creación</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var restaurante in lista)
+            {
+                <tr>
+                    <td>@restaurante.NombreRestaurante</td>
+                    <td>@restaurante.NombreCiudad</td>
+                    <td>@restaurante.NumeroAforo</td>
+                    <td>@restaurante.Telefono</td>
+                    <td>@restaurante.FechaCreacion</td>
+                    <td>
+                        <a href="restauranteform/@restaurante.IDRestaurante">Editar</a>
+                        <a href="eliminar/@restaurante.IDRestaurante">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Restaurante> lista;
+    Restaurante r = new Restaurante();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            r.Codigo = "1";
+            r.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+            lista = await RestauranteService.CrudRestaurante(r);
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,115 @@
+﻿@page "/restauranteform"
+@page "/restauranteform/{Id:int}"
+
+@using Data
+
+@inject CiudadService CiudadService
+@inject RestauranteService RestauranteService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<h1>Formulario de Restaurante</h1>
+
+<br />
+
+<EditForm Model="@r" OnValidSubmit="@Guardar">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Nombre</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="r.NombreRestaurante"></InputText>
+                <ValidationMessage For="@(() => r.NombreRestaurante)"></ValidationMessage>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Ciudades</label>
+            <div class="col-sm-9">
+                <select class="form-control" @onchange="selectChange">
+                    @foreach (var ciudad in ciudades)
+                    {
+                        <option value=@ciudad.IDCiudad>@ciudad.NombreCiudad</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Aforo</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="r.NumeroAforo"></InputText>
+                <ValidationMessage For="@(() => r.NumeroAforo)"></ValidationMessage>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Teléfono</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="r.Telefono"></InputText>
+                <ValidationMessage For="@(() => r.Telefono)"></ValidationMessage>
+            </div>
+        </div>
+        <br />
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Regresar">Cancelar</button>
+                <button type="submit" class="btn btn-primary" value="Guardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    Restaurante r = new Restaurante();
+    List<Restaurante> rest = new List<Restaurante>();
+    List<CiudadModelo> ciudades = new List<CiudadModelo>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            r.IDCiudad = "1";
+            CiudadModelo c = new CiudadModelo();
+            c.Codigo = "3";
+            c.Token = await sessionStorage.GetItemAsync<string>("token_ciudad");
+            ciudades = await CiudadService.CrudCiudad(c);
+            if (Id != 0)
+            {
+                Restaurante res = new Restaurante();
+                res.Codigo = "2";
+                res.IDRestaurante = Id.ToString();
+                res.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+                rest = await RestauranteService.CrudRestaurante(res);
+                r = rest.First();
+            }
+            StateHasChanged();
+        }
+    }
+
+    void selectChange(ChangeEventArgs e)
+    {
+        r.IDCiudad = e.Value.ToString();
+    }
+
+    private async Task Guardar()
+    {
+        if (Id != 0)
+        {
+            r.Codigo = "4";
+            r.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+            await RestauranteService.CrudRestaurante(r);
+        }
+        else
+        {
+            r.Codigo = "3";
+            r.Token = await sessionStorage.GetItemAsync<string>("token_restaurante");
+            await RestauranteService.CrudRestaurante(r);
+        }
+        NavigationManager.NavigateTo("/restaurantepage");
+    }
+
+    private void Regresar()
+    {
+        NavigationManager.NavigateTo("/restaurantepage");
+    }
+}

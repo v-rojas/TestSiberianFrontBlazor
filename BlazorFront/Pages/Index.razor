@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@using Data
+
+@inject RestauranteService RestauranteService
+@inject CiudadService CiudadService
+
+<div class="container-fluid">
+    <h1>Bienvenido</h1>
+    <p>Debe generar el token correspondiente para tener acceso a la información de las Apis</p>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Token Restaurante</label>
+        <textarea disabled class="form-control" value="@oRestaurante.Token" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea2" class="form-label">Token Ciudad</label>
+        <textarea disabled class="form-control" value="@oCiudad.Token" rows="3"></textarea>
+    </div>
+    <br />
+    <div class="form-group row mb-1">
+        <div class="col-sm-12">
+            <button class="btn btn-secondary btn-lg" @onclick="Token">Generar Token</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    TokenSession oRestaurante = new TokenSession();
+    TokenSession oCiudad = new TokenSession();
+
+    private async Task Token()
+    {
+        oRestaurante = await RestauranteService.Autenticacion();
+        await sessionStorage.SetItemAsync("token_restaurante", oRestaurante.Token);
+        oCiudad = await CiudadService.Autenticacion();
+        await sessionStorage.SetItemAsync("token_ciudad", oCiudad.Token);
+    }
+}
